@@ -16,13 +16,24 @@ An MCP (Model Context Protocol) server in Elixir that provides access to the [US
 
 ## Setup
 
-Requires Elixir 1.18+ and Erlang/OTP 28+.
+Requires [mise](https://mise.jdx.dev/) for tool and task management.
 
 ```bash
-mix setup
+mise install   # install Elixir, Erlang, mdbook
+mise run setup # fetch deps + apply patches
 ```
 
-This fetches dependencies and applies a required patch to `hermes_mcp`'s STDIO transport.
+## Available tasks
+
+```
+mise run setup       # Fetch dependencies and apply patches
+mise run server      # Start the MCP server
+mise run compile     # Compile the project
+mise run test        # Run the test suite
+mise run docs        # Build the mdbook documentation
+mise run docs:serve  # Serve docs locally with live reload
+mise run docs:test   # Verify the server responds to MCP requests
+```
 
 ## Usage with Claude Code
 
@@ -32,22 +43,8 @@ Add to `~/.claude/mcp_servers.json`:
 {
   "mcpServers": {
     "usaspending": {
-      "command": "mix",
-      "args": ["run", "--no-halt"],
-      "cwd": "/path/to/usaspending-mcp"
-    }
-  }
-}
-```
-
-Or with an explicit shell for mise/asdf environments:
-
-```json
-{
-  "mcpServers": {
-    "usaspending": {
-      "command": "bash",
-      "args": ["-c", "eval \"$(mise env)\" && exec mix run --no-halt"],
+      "command": "mise",
+      "args": ["run", "server"],
       "cwd": "/path/to/usaspending-mcp"
     }
   }

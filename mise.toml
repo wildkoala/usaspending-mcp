@@ -1,3 +1,55 @@
 [tools]
 elixir = "1.18.4-otp-28"
 erlang = "28.3.1"
+mdbook = "latest"
+
+[tasks.setup]
+description = "Fetch dependencies and apply patches"
+run = """
+mix deps.get
+mise run patch
+mix deps.compile hermes_mcp --force
+"""
+
+[tasks.patch]
+description = "Patch hermes_mcp STDIO transport bug"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+file="deps/hermes_mcp/lib/hermes/server/transport/stdio.ex"
+if grep -q 'process_message(messages, state)' "$file" 2>/dev/null; then
+  sed -i 's/process_message(messages, state)/Enum.each(messages, \\&process_message(\\&1, state))/' "$file"
+  echo "Patched hermes_mcp STDIO transport"
+else
+  echo "Patch already applied or file not found"
+fi
+"""
+
+[tasks.server]
+description = "Start the MCP server"
+run = "mix run --no-halt"
+
+[tasks.compile]
+description = "Compile the project"
+run = "mix compile"
+
+[tasks.test]
+description = "Run the test suite"
+run = "mix test"
+
+[tasks.docs]
+description = "Build the mdbook documentation"
+run = "mdbook build docs"
+
+[tasks."docs:serve"]
+description = "Serve the documentation locally with live reload"
+run = "mdbook serve docs"
+
+[tasks."docs:test"]
+description = "Verify the MCP server responds to a tools/list request"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+printf '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":0}\n{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}\n{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}\n' \
+  | timeout 10 mix run --no-halt 2>/dev/null
+"""

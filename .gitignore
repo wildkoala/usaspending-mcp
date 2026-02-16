@@ -21,3 +21,6 @@ usaspending_mcp-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# mdbook build output
+/docs/book/

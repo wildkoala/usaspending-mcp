@@ -1,0 +1,62 @@
+# USASpending MCP Server
+
+An MCP (Model Context Protocol) server in Elixir that provides access to the [USASpending.gov API](https://api.usaspending.gov) — the U.S. government's source for federal spending data.
+
+## Tools
+
+| Tool | Description |
+|------|-------------|
+| `search_spending_by_award` | Search for federal spending awards with filters (keywords, dates, agency, award type) |
+| `search_spending_by_award_count` | Get counts of awards grouped by type (Contracts, Grants, Loans, etc.) |
+| `get_spending_explorer` | Explore aggregate spending by budget function, agency, object class, or federal account |
+| `list_agencies` | List top-tier federal agencies with budget and spending data |
+| `get_award_details` | Get detailed information about a specific award |
+| `get_recipient_profile` | Get profile for a spending recipient (location, business type, spending breakdown) |
+| `list_federal_accounts` | List and search federal accounts with budgetary resources |
+
+## Setup
+
+Requires Elixir 1.18+ and Erlang/OTP 28+.
+
+```bash
+mix setup
+```
+
+This fetches dependencies and applies a required patch to `hermes_mcp`'s STDIO transport.
+
+## Usage with Claude Code
+
+Add to `~/.claude/mcp_servers.json`:
+
+```json
+{
+  "mcpServers": {
+    "usaspending": {
+      "command": "mix",
+      "args": ["run", "--no-halt"],
+      "cwd": "/path/to/usaspending-mcp"
+    }
+  }
+}
+```
+
+Or with an explicit shell for mise/asdf environments:
+
+```json
+{
+  "mcpServers": {
+    "usaspending": {
+      "command": "bash",
+      "args": ["-c", "eval \"$(mise env)\" && exec mix run --no-halt"],
+      "cwd": "/path/to/usaspending-mcp"
+    }
+  }
+}
+```
+
+## Architecture
+
+- **`Hermes.Server`** — MCP protocol handling via [hermes_mcp](https://hex.pm/packages/hermes_mcp)
+- **STDIO transport** — JSON-RPC over stdin/stdout
+- **`Req`** — HTTP client for USASpending API calls
+- **No authentication required** — USASpending API is public

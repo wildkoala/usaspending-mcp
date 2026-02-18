@@ -14,6 +14,7 @@ defmodule UsaspendingMcp.Tools.ListAgencies do
   end
 
   def execute(params, frame) do
+    params = UsaspendingMcp.stringify_params(params)
     query_params =
       []
       |> maybe_add(:sort, Map.get(params, "sort"))

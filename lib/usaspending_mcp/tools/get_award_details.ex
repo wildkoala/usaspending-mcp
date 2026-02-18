@@ -12,6 +12,7 @@ defmodule UsaspendingMcp.Tools.GetAwardDetails do
   end
 
   def execute(params, frame) do
+    params = UsaspendingMcp.stringify_params(params)
     award_id = params["award_id"]
 
     case ApiClient.get("/api/v2/awards/#{URI.encode(award_id)}/") do

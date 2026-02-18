@@ -20,6 +20,7 @@ defmodule UsaspendingMcp.Tools.ListFederalAccounts do
   end
 
   def execute(params, frame) do
+    params = UsaspendingMcp.stringify_params(params)
     body =
       %{
         page: Map.get(params, "page", 1),

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "SpendingByCategoryResponse",
+  "type": "object",
+  "required": ["category", "spending_level", "results", "limit", "page_metadata"],
+  "properties": {
+    "category": { "type": "string" },
+    "spending_level": {
+      "type": "string",
+      "enum": ["transactions", "awards", "subawards", "award_financial"]
+    },
+    "transactions": { "type": ["number", "null"] },
+    "awards": { "type": ["number", "null"] },
+    "subawards": { "type": ["number", "null"] },
+    "results": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/CategoryResult" }
+    },
+    "limit": { "type": "number" },
+    "page_metadata": { "$ref": "#/definitions/PageMetadataObject" },
+    "messages": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

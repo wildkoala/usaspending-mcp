@@ -17,6 +17,7 @@ defmodule UsaspendingMcp.Tools.SpendingExplorer do
   end
 
   def execute(params, frame) do
+    params = UsaspendingMcp.stringify_params(params)
     body = %{
       type: params["type"],
       filters: %{

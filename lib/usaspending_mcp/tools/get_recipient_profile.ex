@@ -14,6 +14,7 @@ defmodule UsaspendingMcp.Tools.GetRecipientProfile do
   end
 
   def execute(params, frame) do
+    params = UsaspendingMcp.stringify_params(params)
     recipient_id = params["recipient_id"]
     year = Map.get(params, "year", "latest")
 

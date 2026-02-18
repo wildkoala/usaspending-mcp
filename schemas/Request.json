@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "SpendingByCategoryRequest",
+  "type": "object",
+  "required": ["category", "filters"],
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "awarding_agency",
+        "awarding_subagency",
+        "cfda",
+        "country",
+        "county",
+        "defc",
+        "district",
+        "federal_account",
+        "funding_agency",
+        "funding_subagency",
+        "naics",
+        "object_class",
+        "program_activity",
+        "psc",
+        "recipient_duns",
+        "recipient_parent_duns",
+        "state_territory",
+        "tas"
+      ]
+    },
+    "filters": { "$ref": "#/definitions/AdvancedFilterObject" },
+    "limit": { "type": "number" },
+    "page": { "type": "number" },
+    "spending_level": {
+      "type": "string",
+      "enum": ["transactions", "awards", "subawards", "award_financial"]
+    },
+    "subawards": { "type": "boolean" }
+  }
+}

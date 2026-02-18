@@ -5,6 +5,15 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
 
   alias UsaspendingMcp.ApiClient
 
+  alias UsaspendingMcp.Types.{
+    AdvancedFilterObject,
+    AgencyObject,
+    FilterObjectAwardTypes,
+    NAICSCodeObject,
+    PSCCodeObject,
+    TimePeriodObject
+  }
+
   schema do
     field :keywords, :string, description: "Search keywords"
     field :start_date, :string, description: "Start date (YYYY-MM-DD) for the time period filter"
@@ -14,17 +23,29 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
       description:
         "Award type codes. Contracts: A, B, C, D. Grants: 02, 03, 04, 05. Loans: 07, 08. Direct payments: 06, 10. Other: 09, 11"
 
-    field :agency, :string, description: "Funding agency name to filter by"
+    field :naics_codes, {:list, :string},
+      description: "NAICS codes to filter by (e.g. [\"541511\"] or prefix like [\"54\"])"
+
+    field :psc_codes, {:list, :string},
+      description: "Product/Service codes to filter by (e.g. [\"D306\", \"D399\"])"
+
+    field :agency, :string, description: "Funding top-tier agency name to filter by"
+    field :subagency, :string, description: "Funding sub-agency (subtier) name to filter by"
     field :page, :integer, description: "Page number (default 1)"
     field :limit, :integer, description: "Results per page (default 10, max 100)"
   end
 
   def execute(params, frame) do
-    filters = build_filters(params)
+    params = UsaspendingMcp.stringify_params(params)
+
+    filters =
+      build_filters(params)
+      |> AdvancedFilterObject.to_map()
+
     page = Map.get(params, "page", 1)
     limit = min(Map.get(params, "limit", 10), 100)
 
-    award_types = Map.get(params, "award_type", ["A", "B", "C", "D"])
+    award_types = Map.get(params, "award_type", FilterObjectAwardTypes.contracts())
 
     fields =
       case categorize_award_types(award_types) do
@@ -54,51 +75,47 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
   end
 
   defp build_filters(params) do
-    filters = %{}
+    award_types = Map.get(params, "award_type", FilterObjectAwardTypes.contracts())
 
-    filters =
-      case {Map.get(params, "start_date"), Map.get(params, "end_date")} do
-        {nil, nil} ->
-          filters
-
-        {start_date, end_date} ->
-          Map.put(filters, :time_period, [
-            %{
-              start_date: start_date || "2007-10-01",
-              end_date: end_date || Date.to_string(Date.utc_today())
-            }
-          ])
+    agencies =
+      case AgencyObject.from_params(params) do
+        [] -> nil
+        list -> list
       end
 
-    filters =
-      case Map.get(params, "keywords") do
-        nil -> filters
-        kw -> Map.put(filters, :keywords, [kw])
+    psc_codes =
+      case params["psc_codes"] do
+        nil -> nil
+        codes -> PSCCodeObject.require(Enum.map(codes, &[&1]))
       end
 
-    filters =
-      case Map.get(params, "award_type") do
-        nil -> Map.put(filters, :award_type_codes, ["A", "B", "C", "D"])
-        types -> Map.put(filters, :award_type_codes, types)
-      end
+    %AdvancedFilterObject{
+      keywords: if(params["keywords"], do: [params["keywords"]]),
+      time_period: build_time_period(params),
+      award_type_codes: award_types,
+      naics_codes: if(params["naics_codes"], do: NAICSCodeObject.require(params["naics_codes"])),
+      psc_codes: psc_codes,
+      agencies: agencies
+    }
+  end
 
-    case Map.get(params, "agency") do
-      nil ->
-        filters
+  defp build_time_period(params) do
+    case {params["start_date"], params["end_date"]} do
+      {nil, nil} ->
+        nil
 
-      agency ->
-        Map.put(filters, :agencies, [
-          %{type: "funding", tier: "toptier", name: agency}
-        ])
+      {start_date, end_date} ->
+        [
+          TimePeriodObject.new(
+            start_date || "2007-10-01",
+            end_date || Date.to_string(Date.utc_today())
+          )
+        ]
     end
   end
 
   defp categorize_award_types(types) do
-    contract_codes =
-      MapSet.new([
-        "A", "B", "C", "D",
-        "IDV_A", "IDV_B", "IDV_B_A", "IDV_B_B", "IDV_B_C", "IDV_C", "IDV_D", "IDV_E"
-      ])
+    contract_codes = MapSet.new(FilterObjectAwardTypes.all_contracts())
 
     has_contracts = Enum.any?(types, &MapSet.member?(contract_codes, &1))
     has_assistance = Enum.any?(types, &(not MapSet.member?(contract_codes, &1)))
@@ -114,7 +131,9 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
     [
       "Award ID", "Recipient Name", "Award Amount", "Total Outlays",
       "Description", "Start Date", "End Date", "Awarding Agency",
-      "Awarding Sub Agency", "Contract Award Type", "recipient_id", "internal_id"
+      "Awarding Sub Agency", "Contract Award Type",
+      "NAICS", "PSC",
+      "recipient_id", "generated_internal_id"
     ]
   end
 
@@ -122,7 +141,8 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
     [
       "Award ID", "Recipient Name", "Award Amount", "Total Outlays",
       "Description", "Start Date", "End Date", "Awarding Agency",
-      "Awarding Sub Agency", "Award Type", "recipient_id", "internal_id"
+      "Awarding Sub Agency", "Award Type", "CFDA Number",
+      "recipient_id", "generated_internal_id"
     ]
   end
 
@@ -134,14 +154,18 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
 
     rows =
       Enum.map_join(results, "\n---\n", fn award ->
+        naics_line = format_code_field("NAICS", award["NAICS"])
+        psc_line = format_code_field("PSC", award["PSC"])
+        cfda_line = if award["CFDA Number"], do: "\n  CFDA: #{award["CFDA Number"]}", else: ""
+
         """
         Award ID: #{award["Award ID"] || "N/A"}
         Recipient: #{award["Recipient Name"] || "N/A"}
         Amount: #{format_currency(award["Award Amount"])}
         Description: #{award["Description"] || "N/A"}
-        Agency: #{award["Awarding Agency"] || "N/A"}
-        Period: #{award["Start Date"] || "?"} to #{award["End Date"] || "?"}
-        Internal ID: #{award["internal_id"] || "N/A"}\
+        Agency: #{award["Awarding Agency"] || "N/A"} / #{award["Awarding Sub Agency"] || "N/A"}
+        Period: #{award["Start Date"] || "?"} to #{award["End Date"] || "?"}#{naics_line}#{psc_line}#{cfda_line}
+        ID: #{award["generated_internal_id"] || "N/A"}\
         """
       end)
 
@@ -149,6 +173,11 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
   end
 
   defp format_results(data), do: Jason.encode!(data, pretty: true)
+
+  defp format_code_field(_label, nil), do: ""
+  defp format_code_field(label, %{"code" => code, "description" => desc}), do: "\n  #{label}: #{code} - #{desc}"
+  defp format_code_field(label, %{"code" => code}), do: "\n  #{label}: #{code}"
+  defp format_code_field(label, value) when is_binary(value), do: "\n  #{label}: #{value}"
 
   defp format_currency(nil), do: "N/A"
 

@@ -5,6 +5,12 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
 
   alias UsaspendingMcp.ApiClient
 
+  alias UsaspendingMcp.Types.{
+    AdvancedFilterObject,
+    AgencyObject,
+    TimePeriodObject
+  }
+
   schema do
     field :keywords, :string, description: "Search keywords"
     field :start_date, :string, description: "Start date (YYYY-MM-DD)"
@@ -13,7 +19,12 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
   end
 
   def execute(params, frame) do
-    filters = build_filters(params)
+    params = UsaspendingMcp.stringify_params(params)
+
+    filters =
+      build_filters(params)
+      |> AdvancedFilterObject.to_map()
+
     body = %{filters: filters, subawards: false}
 
     case ApiClient.post("/api/v2/search/spending_by_award_count/", body) do
@@ -27,36 +38,31 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
   end
 
   defp build_filters(params) do
-    filters = %{}
-
-    filters =
-      case {Map.get(params, "start_date"), Map.get(params, "end_date")} do
-        {nil, nil} ->
-          filters
-
-        {start_date, end_date} ->
-          Map.put(filters, :time_period, [
-            %{
-              start_date: start_date || "2007-10-01",
-              end_date: end_date || Date.to_string(Date.utc_today())
-            }
-          ])
+    agencies =
+      case AgencyObject.from_params(params) do
+        [] -> nil
+        list -> list
       end
 
-    filters =
-      case Map.get(params, "keywords") do
-        nil -> filters
-        kw -> Map.put(filters, :keywords, [kw])
-      end
+    %AdvancedFilterObject{
+      keywords: if(params["keywords"], do: [params["keywords"]]),
+      time_period: build_time_period(params),
+      agencies: agencies
+    }
+  end
 
-    case Map.get(params, "agency") do
-      nil ->
-        filters
+  defp build_time_period(params) do
+    case {params["start_date"], params["end_date"]} do
+      {nil, nil} ->
+        nil
 
-      agency ->
-        Map.put(filters, :agencies, [
-          %{type: "funding", tier: "toptier", name: agency}
-        ])
+      {start_date, end_date} ->
+        [
+          TimePeriodObject.new(
+            start_date || "2007-10-01",
+            end_date || Date.to_string(Date.utc_today())
+          )
+        ]
     end
   end
 

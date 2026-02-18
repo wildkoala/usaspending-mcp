@@ -1,0 +1,232 @@
+{
+  "definitions": {
+    "CategoryResult": {
+      "type": "object",
+      "required": ["id", "name", "code", "amount", "total_outlays"],
+      "properties": {
+        "id": { "type": "number" },
+        "recipient_id": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] },
+        "code": { "type": ["string", "null"] },
+        "amount": { "type": "number" },
+        "total_outlays": { "type": ["number", "null"] }
+      }
+    },
+
+    "PageMetadataObject": {
+      "type": "object",
+      "properties": {
+        "page": { "type": "number" },
+        "hasNext": { "type": "boolean" }
+      },
+      "required": ["page", "hasNext"]
+    },
+
+    "AdvancedFilterObject": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "description": { "type": "string" },
+        "time_period": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TimePeriodObject" }
+        },
+        "place_of_performance_scope": {
+          "type": "string",
+          "enum": ["domestic", "foreign"]
+        },
+        "place_of_performance_locations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/LocationObject" }
+        },
+        "agencies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/AgencyObject" }
+        },
+        "recipient_search_text": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "recipient_scope": {
+          "type": "string",
+          "enum": ["domestic", "foreign"]
+        },
+        "recipient_locations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/LocationObject" }
+        },
+        "recipient_type_names": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "award_type_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "award_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "award_amounts": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/AwardAmounts" }
+        },
+        "program_numbers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "naics_codes": { "$ref": "#/definitions/NAICSCodeObject" },
+        "tas_codes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TASCodeObject" }
+        },
+        "psc_codes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/PSCCodeObject" }
+        },
+        "contract_pricing_type_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "set_aside_type_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "extent_competed_type_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "treasury_account_components": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TreasuryAccountComponentsObject" }
+        },
+        "object_class": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "program_activity": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "def_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "TimePeriodObject": {
+      "type": "object",
+      "properties": {
+        "start_date": { "type": "string" },
+        "end_date": { "type": "string" }
+      }
+    },
+
+    "LocationObject": {
+      "type": "object",
+      "properties": {
+        "country": { "type": "string" },
+        "state": { "type": "string" },
+        "county": { "type": "string" },
+        "congressional_code": { "type": "string" }
+      }
+    },
+
+    "AgencyObject": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["awarding", "funding"]
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["toptier", "subtier"]
+        },
+        "name": { "type": "string" },
+        "toptier_name": { "type": "string" }
+      },
+      "required": ["type", "tier", "name"]
+    },
+
+    "AwardAmounts": {
+      "type": "object",
+      "properties": {
+        "lower_bound": { "type": "number" },
+        "upper_bound": { "type": "number" }
+      }
+    },
+
+    "NAICSCodeObject": {
+      "type": "object",
+      "properties": {
+        "require": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "PSCCodeObject": {
+      "type": "object",
+      "properties": {
+        "require": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "TASCodeObject": {
+      "type": "object",
+      "properties": {
+        "require": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "TreasuryAccountComponentsObject": {
+      "type": "object",
+      "properties": {
+        "ata": { "type": ["string", "null"] },
+        "aid": { "type": "string" },
+        "bpoa": { "type": ["string", "null"] },
+        "epoa": { "type": ["string", "null"] },
+        "a": { "type": ["string", "null"] },
+        "main": { "type": "string" },
+        "sub": { "type": ["string", "null"] }
+      },
+      "required": ["aid", "main"]
+    }
+  }
+}

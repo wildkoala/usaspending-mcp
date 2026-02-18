@@ -46,10 +46,29 @@ description = "Serve the documentation locally with live reload"
 run = "mdbook serve docs"
 
 [tasks."docs:test"]
-description = "Verify the MCP server responds to a tools/list request"
+description = "Verify the MCP server responds to a tools/list request via HTTP"
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
-printf '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":0}\n{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}\n{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}\n' \
-  | timeout 10 mix run --no-halt 2>/dev/null
+echo "Sending initialize request..."
+INIT_RESPONSE=$(curl -s -D /dev/stderr -X POST http://localhost:4000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":0}' 2>&1)
+echo "$INIT_RESPONSE"
+SESSION_ID=$(echo "$INIT_RESPONSE" | grep -i 'mcp-session-id' | head -1 | sed 's/.*: //' | tr -d '\\r')
+if [ -z "$SESSION_ID" ]; then
+  echo "ERROR: No session ID returned"
+  exit 1
+fi
+echo ""
+echo "Session ID: $SESSION_ID"
+echo ""
+echo "Sending tools/list request..."
+curl -s -X POST http://localhost:4000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "mcp-session-id: $SESSION_ID" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
+echo ""
 """

@@ -22,7 +22,9 @@ defmodule UsaspendingMcp.MixProject do
     [
       {:hermes_mcp, "~> 0.14"},
       {:req, "~> 0.5"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:bandit, "~> 1.0"},
+      {:plug, "~> 1.0"}
     ]
   end
 end

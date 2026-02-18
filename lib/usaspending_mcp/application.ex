@@ -15,9 +15,10 @@ defmodule UsaspendingMcp.Application do
             id: Hermes.Server.Supervisor,
             start:
               {Hermes.Server.Supervisor, :start_link,
-               [UsaspendingMcp.Server, [transport: :stdio]]},
+               [UsaspendingMcp.Server, [transport: {:streamable_http, start: true}]]},
             type: :supervisor
-          }
+          },
+          {Bandit, plug: UsaspendingMcp.Router, port: 4000}
         ]
       end
 

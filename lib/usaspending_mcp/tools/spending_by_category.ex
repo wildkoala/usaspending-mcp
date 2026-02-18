@@ -86,9 +86,12 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
         nil
 
       {start_date, end_date} ->
+        default_start =
+          Date.utc_today() |> Date.add(-4 * 365) |> Date.to_string()
+
         [
           TimePeriodObject.new(
-            start_date || "2007-10-01",
+            start_date || default_start,
             end_date || Date.to_string(Date.utc_today())
           )
         ]
@@ -106,7 +109,6 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
         """
         #{item["name"] || "Unknown"}#{if item["code"], do: " (#{item["code"]})", else: ""}
           Amount: #{format_currency(item["amount"])}
-          Outlays: #{format_currency(item["total_outlays"])}\
         """
       end)
 

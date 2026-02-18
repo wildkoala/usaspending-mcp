@@ -4,6 +4,6 @@ defmodule UsaspendingMcp.Router do
   plug :match
   plug :dispatch
 
-  forward "/mcp", to: Hermes.Server.Transport.StreamableHTTP.Plug,
+  forward "/", to: Hermes.Server.Transport.StreamableHTTP.Plug,
     init_opts: [server: UsaspendingMcp.Server]
 end

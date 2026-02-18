@@ -18,7 +18,7 @@ defmodule UsaspendingMcp.Application do
                [UsaspendingMcp.Server, [transport: {:streamable_http, start: true}]]},
             type: :supervisor
           },
-          {Bandit, plug: UsaspendingMcp.Router, port: 4000}
+          {Bandit, plug: UsaspendingMcp.Router, port: 4005, ip: {127, 0, 0, 1}}
         ]
       end
 

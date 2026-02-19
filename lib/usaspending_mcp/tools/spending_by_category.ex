@@ -38,7 +38,11 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
 
     field :set_aside_type_codes, {:list, :string},
       description:
-        "Filter by set-aside type codes. HBCUs/Minority Institutions: HMT, HMP. HUBZone: HZC, HZS. Native American: BI, ISEE, ISBEE. Small Disadvantaged Business: SBP, 8AN, HS3, HS2Civ, 8A, VSBCiv, RSBCiv, SBA, ESB, 8ACCiv. Veteran Owned: SDVOSBC, SDVOSBS, VSA, VSS. Women Owned: EDWOSBSS, EDWOSB, WOSBSS, WOSB"
+        "Filter by set-aside type codes. Only set this is the user explicit mentions set-asides. HBCUs/Minority Institutions: HMT, HMP. HUBZone: HZC, HZS. Native American: BI, ISEE, ISBEE. Small Disadvantaged Business: SBP, 8AN, HS3, HS2Civ, 8A, VSBCiv, RSBCiv, SBA, ESB, 8ACCiv. Veteran Owned: SDVOSBC, SDVOSBS, VSA, VSS. Women Owned: EDWOSBSS, EDWOSB, WOSBSS, WOSB"
+
+    field :recipient_type_names, {:list, :string},
+      description:
+        "Filter by recipient/business type. Only set this if the user explicitly mentions recipient. Categories: category_business, category_minority_owned_business, category_woman_owned_business, category_veteran_owned_business, category_special_designations, category_nonprofit, category_higher_education, category_government, category_individuals. Specific types: small_business, other_than_small_business, sole_proprietorship, 8a_program_participant, woman_owned_business, service_disabled_veteran_owned_business, nonprofit, higher_education, etc."
 
     field :page, :integer, description: "Page number (default: 1)"
     field :limit, :integer, description: "Results per page (default: 10)"
@@ -83,7 +87,8 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
       award_type_codes: params["award_type_codes"],
       naics_codes: if(params["naics_codes"], do: NAICSCodeObject.require(params["naics_codes"])),
       psc_codes: params["psc_codes"],
-      set_aside_type_codes: params["set_aside_type_codes"]
+      set_aside_type_codes: params["set_aside_type_codes"],
+      recipient_type_names: params["recipient_type_names"]
     }
   end
 

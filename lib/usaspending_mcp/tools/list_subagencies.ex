@@ -4,6 +4,9 @@ defmodule UsaspendingMcp.Tools.ListSubagencies do
   use Hermes.Server.Component, type: :tool
 
   alias UsaspendingMcp.ApiClient
+  alias UsaspendingMcp.Responses.SubagencyListResponse
+  alias UsaspendingMcp.Responses.SubagencyListResponse.Office
+  import UsaspendingMcp.Formatter, only: [format_currency: 1]
 
   schema do
     field :toptier_code, {:required, :string},
@@ -55,44 +58,38 @@ defmodule UsaspendingMcp.Tools.ListSubagencies do
   defp maybe_add(params, _key, nil), do: params
   defp maybe_add(params, key, value), do: [{key, value} | params]
 
-  defp format_results(%{"results" => results, "toptier_code" => code, "fiscal_year" => fy} = data) do
-    total = get_in(data, ["page_metadata", "total"]) || length(results)
-    page = get_in(data, ["page_metadata", "page"]) || 1
+  defp format_results(data) do
+    case SubagencyListResponse.from_map(data) do
+      %SubagencyListResponse{toptier_code: code, fiscal_year: fy, results: results, total: total, page: page} ->
+        header = "Sub-agencies for toptier code #{code}, FY #{fy} (#{total} total, page #{page}):\n\n"
 
-    header = "Sub-agencies for toptier code #{code}, FY #{fy} (#{total} total, page #{page}):\n\n"
+        rows =
+          Enum.map_join(results, "\n---\n", fn sub ->
+            children_text = format_children(sub.children)
 
-    rows =
-      Enum.map_join(results, "\n---\n", fn sub ->
-        children_text = format_children(sub["children"] || [])
+            """
+            #{sub.name}#{if sub.abbreviation, do: " (#{sub.abbreviation})", else: ""}
+              Total Obligations: #{format_currency(sub.total_obligations)}
+              Transactions: #{sub.transaction_count || "N/A"}
+              New Awards: #{sub.new_award_count || "N/A"}#{children_text}\
+            """
+          end)
 
-        """
-        #{sub["name"]}#{if sub["abbreviation"], do: " (#{sub["abbreviation"]})", else: ""}
-          Total Obligations: #{format_currency(sub["total_obligations"])}
-          Transactions: #{sub["transaction_count"] || "N/A"}
-          New Awards: #{sub["new_award_count"] || "N/A"}#{children_text}\
-        """
-      end)
+        header <> rows
 
-    header <> rows
+      nil ->
+        Jason.encode!(data, pretty: true)
+    end
   end
-
-  defp format_results(data), do: Jason.encode!(data, pretty: true)
 
   defp format_children([]), do: ""
 
   defp format_children(children) do
     entries =
-      Enum.map_join(children, "\n", fn child ->
-        "    - #{child["name"]} (#{child["code"]}): #{format_currency(child["total_obligations"])}"
+      Enum.map_join(children, "\n", fn %Office{name: name, code: code, total_obligations: obligations} ->
+        "    - #{name} (#{code}): #{format_currency(obligations)}"
       end)
 
     "\n  Offices:\n" <> entries
   end
-
-  defp format_currency(nil), do: "N/A"
-
-  defp format_currency(amount) when is_number(amount),
-    do: "$#{:erlang.float_to_binary(amount / 1, decimals: 2)}"
-
-  defp format_currency(amount), do: "$#{amount}"
 end

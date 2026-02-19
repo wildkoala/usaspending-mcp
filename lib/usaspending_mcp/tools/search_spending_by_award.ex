@@ -4,6 +4,9 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
   use Hermes.Server.Component, type: :tool
 
   alias UsaspendingMcp.ApiClient
+  alias UsaspendingMcp.Responses.AwardSearchResponse
+  alias UsaspendingMcp.Responses.AwardSearchResponse.CodeField
+  import UsaspendingMcp.Formatter, only: [format_currency: 1]
 
   alias UsaspendingMcp.Types.{
     AdvancedFilterObject,
@@ -146,43 +149,36 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
     ]
   end
 
-  defp format_results(%{"results" => results, "page_metadata" => meta}) do
-    total = meta["total"] || 0
-    page = meta["page"] || 1
+  defp format_results(data) do
+    case AwardSearchResponse.from_map(data) do
+      %AwardSearchResponse{results: results, total: total, page: page} ->
+        header = "Found #{total} awards (page #{page}):\n\n"
 
-    header = "Found #{total} awards (page #{page}):\n\n"
+        rows =
+          Enum.map_join(results, "\n---\n", fn award ->
+            naics_line = format_code_field("NAICS", award.naics)
+            psc_line = format_code_field("PSC", award.psc)
+            cfda_line = if award.cfda_number, do: "\n  CFDA: #{award.cfda_number}", else: ""
 
-    rows =
-      Enum.map_join(results, "\n---\n", fn award ->
-        naics_line = format_code_field("NAICS", award["NAICS"])
-        psc_line = format_code_field("PSC", award["PSC"])
-        cfda_line = if award["CFDA Number"], do: "\n  CFDA: #{award["CFDA Number"]}", else: ""
+            """
+            Award ID: #{award.award_id || "N/A"}
+            Recipient: #{award.recipient_name || "N/A"}
+            Amount: #{format_currency(award.award_amount)}
+            Description: #{award.description || "N/A"}
+            Agency: #{award.awarding_agency || "N/A"} / #{award.awarding_sub_agency || "N/A"}
+            Period: #{award.start_date || "?"} to #{award.end_date || "?"}#{naics_line}#{psc_line}#{cfda_line}
+            ID: #{award.generated_internal_id || "N/A"}\
+            """
+          end)
 
-        """
-        Award ID: #{award["Award ID"] || "N/A"}
-        Recipient: #{award["Recipient Name"] || "N/A"}
-        Amount: #{format_currency(award["Award Amount"])}
-        Description: #{award["Description"] || "N/A"}
-        Agency: #{award["Awarding Agency"] || "N/A"} / #{award["Awarding Sub Agency"] || "N/A"}
-        Period: #{award["Start Date"] || "?"} to #{award["End Date"] || "?"}#{naics_line}#{psc_line}#{cfda_line}
-        ID: #{award["generated_internal_id"] || "N/A"}\
-        """
-      end)
+        header <> rows
 
-    header <> rows
+      nil ->
+        Jason.encode!(data, pretty: true)
+    end
   end
 
-  defp format_results(data), do: Jason.encode!(data, pretty: true)
-
   defp format_code_field(_label, nil), do: ""
-  defp format_code_field(label, %{"code" => code, "description" => desc}), do: "\n  #{label}: #{code} - #{desc}"
-  defp format_code_field(label, %{"code" => code}), do: "\n  #{label}: #{code}"
-  defp format_code_field(label, value) when is_binary(value), do: "\n  #{label}: #{value}"
-
-  defp format_currency(nil), do: "N/A"
-
-  defp format_currency(amount) when is_number(amount),
-    do: "$#{:erlang.float_to_binary(amount / 1, decimals: 2)}"
-
-  defp format_currency(amount), do: "$#{amount}"
+  defp format_code_field(label, %CodeField{code: code, description: desc}) when not is_nil(desc), do: "\n  #{label}: #{code} - #{desc}"
+  defp format_code_field(label, %CodeField{code: code}), do: "\n  #{label}: #{code}"
 end

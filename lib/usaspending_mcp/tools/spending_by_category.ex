@@ -4,6 +4,8 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
   use Hermes.Server.Component, type: :tool
 
   alias UsaspendingMcp.ApiClient
+  alias UsaspendingMcp.Responses.SpendingByCategoryResponse
+  import UsaspendingMcp.Formatter, only: [format_currency: 1]
 
   alias UsaspendingMcp.Types.{
     AdvancedFilterObject,
@@ -98,29 +100,23 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
     end
   end
 
-  defp format_results(%{"category" => category, "results" => results} = data) do
-    total = get_in(data, ["page_metadata", "total"]) || length(results)
-    page = get_in(data, ["page_metadata", "page"]) || 1
+  defp format_results(data) do
+    case SpendingByCategoryResponse.from_map(data) do
+      %SpendingByCategoryResponse{category: category, results: results, total: total, page: page} ->
+        header = "Spending by #{category} (#{total} results, page #{page}):\n\n"
 
-    header = "Spending by #{category} (#{total} results, page #{page}):\n\n"
+        rows =
+          Enum.map_join(results, "\n---\n", fn item ->
+            """
+            #{item.name || "Unknown"}#{if item.code, do: " (#{item.code})", else: ""}
+              Amount: #{format_currency(item.amount)}
+            """
+          end)
 
-    rows =
-      Enum.map_join(results, "\n---\n", fn item ->
-        """
-        #{item["name"] || "Unknown"}#{if item["code"], do: " (#{item["code"]})", else: ""}
-          Amount: #{format_currency(item["amount"])}
-        """
-      end)
+        header <> rows
 
-    header <> rows
+      nil ->
+        Jason.encode!(data, pretty: true)
+    end
   end
-
-  defp format_results(data), do: Jason.encode!(data, pretty: true)
-
-  defp format_currency(nil), do: "N/A"
-
-  defp format_currency(amount) when is_number(amount),
-    do: "$#{:erlang.float_to_binary(amount / 1, decimals: 2)}"
-
-  defp format_currency(amount), do: "$#{amount}"
 end

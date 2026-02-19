@@ -4,6 +4,8 @@ defmodule UsaspendingMcp.Tools.ListFederalAccounts do
   use Hermes.Server.Component, type: :tool
 
   alias UsaspendingMcp.ApiClient
+  alias UsaspendingMcp.Responses.FederalAccountListResponse
+  import UsaspendingMcp.Formatter, only: [format_currency: 1]
 
   schema do
     field :keyword, :string, description: "Keyword to search federal accounts by name or number"
@@ -62,31 +64,25 @@ defmodule UsaspendingMcp.Tools.ListFederalAccounts do
   defp maybe_put(map, _key, val) when val == %{}, do: map
   defp maybe_put(map, key, val), do: Map.put(map, key, val)
 
-  defp format_results(%{"results" => results, "page_metadata" => meta}) do
-    total = meta["total"] || 0
-    page = meta["page"] || 1
+  defp format_results(data) do
+    case FederalAccountListResponse.from_map(data) do
+      %FederalAccountListResponse{accounts: accounts, total: total, page: page} ->
+        header = "Federal Accounts (#{total} total, page #{page}):\n\n"
 
-    header = "Federal Accounts (#{total} total, page #{page}):\n\n"
+        rows =
+          Enum.map_join(accounts, "\n---\n", fn account ->
+            """
+            #{account.account_name || "N/A"}
+              Account Number: #{account.account_number || "N/A"}
+              Managing Agency: #{account.managing_agency || account.managing_agency_acronym || "N/A"}
+              Budgetary Resources: #{format_currency(account.budgetary_resources)}\
+            """
+          end)
 
-    rows =
-      Enum.map_join(results, "\n---\n", fn account ->
-        """
-        #{account["account_name"] || "N/A"}
-          Account Number: #{account["account_number"] || "N/A"}
-          Managing Agency: #{account["managing_agency"] || account["managing_agency_acronym"] || "N/A"}
-          Budgetary Resources: #{format_currency(account["budgetary_resources"])}\
-        """
-      end)
+        header <> rows
 
-    header <> rows
+      nil ->
+        Jason.encode!(data, pretty: true)
+    end
   end
-
-  defp format_results(data), do: Jason.encode!(data, pretty: true)
-
-  defp format_currency(nil), do: "N/A"
-
-  defp format_currency(amount) when is_number(amount),
-    do: "$#{:erlang.float_to_binary(amount / 1, decimals: 2)}"
-
-  defp format_currency(amount), do: "$#{amount}"
 end

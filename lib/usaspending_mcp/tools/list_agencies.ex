@@ -4,6 +4,8 @@ defmodule UsaspendingMcp.Tools.ListAgencies do
   use Hermes.Server.Component, type: :tool
 
   alias UsaspendingMcp.ApiClient
+  alias UsaspendingMcp.Responses.AgencyListResponse
+  import UsaspendingMcp.Formatter, only: [format_currency: 1]
 
   schema do
     field :sort, :string,
@@ -33,30 +35,27 @@ defmodule UsaspendingMcp.Tools.ListAgencies do
   defp maybe_add(params, _key, nil), do: params
   defp maybe_add(params, key, value), do: [{key, value} | params]
 
-  defp format_results(%{"results" => results}) do
-    header = "Top-tier Federal Agencies (#{length(results)} total):\n\n"
+  defp format_results(data) do
+    case AgencyListResponse.from_map(data) do
+      %AgencyListResponse{agencies: agencies} ->
+        header = "Top-tier Federal Agencies (#{length(agencies)} total):\n\n"
 
-    rows =
-      Enum.map_join(results, "\n---\n", fn agency ->
-        """
-        #{agency["agency_name"]}
-          Budget Authority: #{format_currency(agency["budget_authority_amount"])}
-          Obligated: #{format_currency(agency["obligated_amount"])}
-          Outlays: #{format_currency(agency["outlay_amount"])}
-          % of Total Budget: #{agency["percentage_of_total_budget_authority"] || "N/A"}%
-          FY: #{agency["active_fy"] || "N/A"}\
-        """
-      end)
+        rows =
+          Enum.map_join(agencies, "\n---\n", fn agency ->
+            """
+            #{agency.agency_name}
+              Budget Authority: #{format_currency(agency.budget_authority_amount)}
+              Obligated: #{format_currency(agency.obligated_amount)}
+              Outlays: #{format_currency(agency.outlay_amount)}
+              % of Total Budget: #{agency.percentage_of_total_budget_authority || "N/A"}%
+              FY: #{agency.active_fy || "N/A"}\
+            """
+          end)
 
-    header <> rows
+        header <> rows
+
+      nil ->
+        Jason.encode!(data, pretty: true)
+    end
   end
-
-  defp format_results(data), do: Jason.encode!(data, pretty: true)
-
-  defp format_currency(nil), do: "N/A"
-
-  defp format_currency(amount) when is_number(amount),
-    do: "$#{:erlang.float_to_binary(amount / 1, decimals: 2)}"
-
-  defp format_currency(amount), do: "$#{amount}"
 end

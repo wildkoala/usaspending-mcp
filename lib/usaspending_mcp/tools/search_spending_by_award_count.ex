@@ -4,6 +4,7 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
   use Hermes.Server.Component, type: :tool
 
   alias UsaspendingMcp.ApiClient
+  alias UsaspendingMcp.Responses.AwardCountResponse
 
   alias UsaspendingMcp.Types.{
     AdvancedFilterObject,
@@ -66,16 +67,20 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
     end
   end
 
-  defp format_results(%{"results" => results}) do
-    header = "Award counts by type:\n\n"
+  defp format_results(data) do
+    case AwardCountResponse.from_map(data) do
+      %AwardCountResponse{counts: counts} ->
+        header = "Award counts by type:\n\n"
 
-    rows =
-      Enum.map_join(results, "\n", fn {type, count} ->
-        "  #{type}: #{count}"
-      end)
+        rows =
+          Enum.map_join(counts, "\n", fn {type, count} ->
+            "  #{type}: #{count}"
+          end)
 
-    header <> rows
+        header <> rows
+
+      nil ->
+        Jason.encode!(data, pretty: true)
+    end
   end
-
-  defp format_results(data), do: Jason.encode!(data, pretty: true)
 end

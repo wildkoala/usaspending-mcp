@@ -1,0 +1,8 @@
+{
+    "historically_black_or_minority_institutions": ["HMT", "HMP"],
+    "HUBZone": ["HZC", "HZS"],
+    "native_american": ["BI", "ISEE", "ISBEE"],
+    "small_disadvantaged_business": ["SBP", "8AN", "HS3", "HS2Civ", "8A", "VSBCiv", "RSBCiv", "SBA", "ESB", "8ACCiv"],
+    "veteran_owned": ["SDVOSBC", "SDVOSBS", "VSA", "VSS"],
+    "women_owned": ["EDWOSBSS", "EDWOSB", "WOSBSS", "WOSB"]
+}

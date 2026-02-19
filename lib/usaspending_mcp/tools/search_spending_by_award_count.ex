@@ -17,6 +17,10 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
     field :start_date, :string, description: "Start date (YYYY-MM-DD)"
     field :end_date, :string, description: "End date (YYYY-MM-DD)"
     field :agency, :string, description: "Funding agency name to filter by"
+
+    field :set_aside_type_codes, {:list, :string},
+      description:
+        "Filter by set-aside type codes. HBCUs/Minority Institutions: HMT, HMP. HUBZone: HZC, HZS. Native American: BI, ISEE, ISBEE. Small Disadvantaged Business: SBP, 8AN, HS3, HS2Civ, 8A, VSBCiv, RSBCiv, SBA, ESB, 8ACCiv. Veteran Owned: SDVOSBC, SDVOSBS, VSA, VSS. Women Owned: EDWOSBSS, EDWOSB, WOSBSS, WOSB"
   end
 
   def execute(params, frame) do
@@ -48,7 +52,8 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
     %AdvancedFilterObject{
       keywords: if(params["keywords"], do: [params["keywords"]]),
       time_period: build_time_period(params),
-      agencies: agencies
+      agencies: agencies,
+      set_aside_type_codes: params["set_aside_type_codes"]
     }
   end
 

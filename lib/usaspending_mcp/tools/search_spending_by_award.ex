@@ -34,6 +34,11 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
 
     field :agency, :string, description: "Funding top-tier agency name to filter by"
     field :subagency, :string, description: "Funding sub-agency (subtier) name to filter by"
+
+    field :set_aside_type_codes, {:list, :string},
+      description:
+        "Filter by set-aside type codes. HBCUs/Minority Institutions: HMT, HMP. HUBZone: HZC, HZS. Native American: BI, ISEE, ISBEE. Small Disadvantaged Business: SBP, 8AN, HS3, HS2Civ, 8A, VSBCiv, RSBCiv, SBA, ESB, 8ACCiv. Veteran Owned: SDVOSBC, SDVOSBS, VSA, VSS. Women Owned: EDWOSBSS, EDWOSB, WOSBSS, WOSB"
+
     field :page, :integer, description: "Page number (default 1)"
     field :limit, :integer, description: "Results per page (default 10, max 100)"
   end
@@ -98,7 +103,8 @@ defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
       award_type_codes: award_types,
       naics_codes: if(params["naics_codes"], do: NAICSCodeObject.require(params["naics_codes"])),
       psc_codes: psc_codes,
-      agencies: agencies
+      agencies: agencies,
+      set_aside_type_codes: params["set_aside_type_codes"]
     }
   end
 

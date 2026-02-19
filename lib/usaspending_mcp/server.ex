@@ -19,4 +19,5 @@ defmodule UsaspendingMcp.Server do
   component UsaspendingMcp.Tools.GetAwardDetails, name: "get_award_details"
   component UsaspendingMcp.Tools.GetRecipientProfile, name: "get_recipient_profile"
   component UsaspendingMcp.Tools.ListFederalAccounts, name: "list_federal_accounts"
+  component UsaspendingMcp.Tools.SetAsideBreakdown, name: "set_aside_breakdown"
 end

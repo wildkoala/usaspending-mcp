@@ -36,6 +36,10 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
       description:
         "Filter by award type codes. Contracts: A, B, C, D. Grants: 02, 03, 04, 05. Loans: 07, 08. Direct payments: 06, 10. Other: 09, 11"
 
+    field :set_aside_type_codes, {:list, :string},
+      description:
+        "Filter by set-aside type codes. HBCUs/Minority Institutions: HMT, HMP. HUBZone: HZC, HZS. Native American: BI, ISEE, ISBEE. Small Disadvantaged Business: SBP, 8AN, HS3, HS2Civ, 8A, VSBCiv, RSBCiv, SBA, ESB, 8ACCiv. Veteran Owned: SDVOSBC, SDVOSBS, VSA, VSS. Women Owned: EDWOSBSS, EDWOSB, WOSBSS, WOSB"
+
     field :page, :integer, description: "Page number (default: 1)"
     field :limit, :integer, description: "Results per page (default: 10)"
   end
@@ -78,7 +82,8 @@ defmodule UsaspendingMcp.Tools.SpendingByCategory do
       agencies: agencies,
       award_type_codes: params["award_type_codes"],
       naics_codes: if(params["naics_codes"], do: NAICSCodeObject.require(params["naics_codes"])),
-      psc_codes: params["psc_codes"]
+      psc_codes: params["psc_codes"],
+      set_aside_type_codes: params["set_aside_type_codes"]
     }
   end
 

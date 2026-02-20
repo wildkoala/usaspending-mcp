@@ -1,0 +1,11 @@
+{
+    "competed_under_sap": "F",
+    "competed_delivery_order": "CDOCiv",
+    "follow_on_to_competed_action": "E Civ",
+    "full_and_open_competition": "A",
+    "full_and_open_competition_after_exclusion_of_sources": "D",
+    "non-competitive_delivery_order": "NDOCiv",
+    "not_available_for_competition": "B",
+    "not_competed": "C",
+    "not_competed_under_sap": "G"
+}

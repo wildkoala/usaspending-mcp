@@ -1,5 +1,5 @@
-defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
-  @moduledoc "Calculate what percentage of spending goes to each set-aside category (e.g. veteran-owned, women-owned, HUBZone) for given filters. Returns a complete breakdown in a single call — no follow-up tool calls needed."
+defmodule UsaspendingMcp.Tools.ExtentCompetedBreakdown do
+  @moduledoc "Calculate what percentage of spending goes to each extent-competed category (e.g. full and open competition, not competed, competed under SAP) for given filters. Returns a complete breakdown in a single call — no follow-up tool calls needed."
 
   use Hermes.Server.Component, type: :tool
 
@@ -14,13 +14,16 @@ defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
 
   import UsaspendingMcp.Formatter, only: [format_currency: 1]
 
-  @set_aside_categories [
-    {"HBCUs/Minority Institutions", ["HMT", "HMP"]},
-    {"HUBZone", ["HZC", "HZS"]},
-    {"Native American", ["BI", "ISEE", "ISBEE"]},
-    {"Small Disadvantaged Business", ["SBP", "8AN", "HS3", "HS2Civ", "8A", "VSBCiv", "RSBCiv", "SBA", "ESB", "8ACCiv"]},
-    {"Veteran Owned", ["SDVOSBC", "SDVOSBS", "VSA", "VSS"]},
-    {"Women Owned", ["EDWOSBSS", "EDWOSB", "WOSBSS", "WOSB"]}
+  @extent_competed_categories [
+    {"Competed Under SAP", ["F"]},
+    {"Competed Delivery Order", ["CDOCiv"]},
+    {"Follow-on to Competed Action", ["E Civ"]},
+    {"Full and Open Competition", ["A"]},
+    {"Full and Open After Exclusion of Sources", ["D"]},
+    {"Non-competitive Delivery Order", ["NDOCiv"]},
+    {"Not Available for Competition", ["B"]},
+    {"Not Competed", ["C"]},
+    {"Not Competed Under SAP", ["G"]}
   ]
 
   schema do
@@ -50,9 +53,8 @@ defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
     base_filter = build_base_filter(params)
     category = params["category"]
 
-    # Build all queries: base (no set-aside) + one per set-aside category
     queries =
-      [{:base, nil} | Enum.map(@set_aside_categories, fn {name, codes} -> {name, codes} end)]
+      [{:base, nil} | Enum.map(@extent_competed_categories, fn {name, codes} -> {name, codes} end)]
 
     results =
       Task.async_stream(
@@ -60,7 +62,7 @@ defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
         fn {label, codes} ->
           filter =
             if codes do
-              %{base_filter | set_aside_type_codes: codes}
+              %{base_filter | extent_competed_type_codes: codes}
             else
               base_filter
             end
@@ -87,7 +89,7 @@ defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
               {label, 0}
           end
         end,
-        max_concurrency: 7,
+        max_concurrency: 10,
         timeout: 60_000
       )
       |> Enum.map(fn {:ok, result} -> result end)
@@ -135,11 +137,11 @@ defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
 
   defp format_breakdown(base_total, _category_results) when base_total == 0 do
     "No spending found for the given filters.\n\n" <>
-      "Set-aside breakdown could not be calculated (base total is $0)."
+      "Extent-competed breakdown could not be calculated (base total is $0)."
   end
 
   defp format_breakdown(base_total, category_results) do
-    header = "Set-Aside Breakdown (Base total: #{format_currency(base_total)})\n\n"
+    header = "Extent Competed Breakdown (Base total: #{format_currency(base_total)})\n\n"
 
     sorted = Enum.sort_by(category_results, fn {_, amount} -> amount end, :desc)
 

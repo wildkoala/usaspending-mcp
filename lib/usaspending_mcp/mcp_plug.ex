@@ -96,8 +96,16 @@ defmodule UsaspendingMcp.McpPlug do
       # No SSE handler registered, return as direct response
       conn
       |> put_resp_content_type("application/json")
-      |> send_resp(200, response)
+      |> send_resp(200, response || "{}")
     end
+  end
+
+  defp handle_sse_result(conn, {:ok, nil}, _transport, session_id, _body, _context, session_header) do
+    # Notifications return {:ok, nil} from Hermes — respond with 202 empty body
+    conn
+    |> maybe_add_session_header(session_header, session_id)
+    |> put_resp_content_type("application/json")
+    |> send_resp(202, "{}")
   end
 
   defp handle_sse_result(conn, {:ok, response}, _transport, session_id, _body, _context, session_header) do

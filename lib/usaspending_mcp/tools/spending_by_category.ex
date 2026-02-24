@@ -1,5 +1,15 @@
 defmodule UsaspendingMcp.Tools.SpendingByCategory do
-  @moduledoc "Find which agencies, subagencies, or other categories have the most spending for a given NAICS code, PSC code, or other filters"
+  @moduledoc """
+  Find which entities (agencies, NAICS codes, recipients, etc.) have the most spending for given filters. Groups and ranks spending by a chosen category dimension.
+
+  The 'category' parameter is REQUIRED and determines how results are grouped. Valid values: awarding_agency, awarding_subagency, funding_agency, funding_subagency, naics, psc, recipient_duns, cfda, country, state_territory, county, district, federal_account.
+
+  Returns a ranked list of entities in that category with their total spending amounts. For example, category="awarding_agency" with naics_codes=["541511"] shows which agencies spend the most on custom software development.
+
+  All filter parameters except category are optional. Dates must be in YYYY-MM-DD format. The agency parameter must be the full official toptier agency name. Use list_agencies to look up exact names. Do not set set_aside_type_codes unless the user explicitly asks about set-asides. Do not set recipient_type_names unless the user explicitly asks about recipient/business types.
+
+  For a complete set-aside percentage breakdown, use set_aside_breakdown instead. For extent-competed analysis, use extent_competed_breakdown instead.
+  """
 
   use Hermes.Server.Component, type: :tool
 

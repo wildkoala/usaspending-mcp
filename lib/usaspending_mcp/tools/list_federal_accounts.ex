@@ -1,5 +1,13 @@
 defmodule UsaspendingMcp.Tools.ListFederalAccounts do
-  @moduledoc "List and search federal accounts with budgetary resource information"
+  @moduledoc """
+  List and search federal Treasury accounts with their budgetary resource amounts and managing agency information.
+
+  Returns a paginated list of federal accounts with: account name, account number, managing agency, and budgetary resources amount. All parameters are optional — call with no arguments to get accounts sorted by budgetary resources descending.
+
+  Use the keyword parameter to search accounts by name or number. Use agency_identifier to filter to a specific agency's accounts. Use fiscal_year to see a specific year's budgetary resources.
+
+  This tool is for exploring federal financial accounts. For award-level spending data, use search_spending_by_award instead.
+  """
 
   use Hermes.Server.Component, type: :tool
 

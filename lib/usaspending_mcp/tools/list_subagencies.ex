@@ -1,5 +1,13 @@
 defmodule UsaspendingMcp.Tools.ListSubagencies do
-  @moduledoc "List sub-agencies under a top-tier federal agency with obligation amounts and award counts"
+  @moduledoc """
+  List sub-agencies (subtier agencies and offices) under a specific top-tier federal agency, with obligation amounts and award counts.
+
+  The 'toptier_code' parameter is REQUIRED — this is the 3-4 digit CGAC or FREC code for the agency. Use list_agencies first to find the correct toptier code for an agency.
+
+  Returns sub-agency name, abbreviation, total obligations, transaction count, new award count, and child offices. Use this to drill down into an agency's organizational structure and spending distribution.
+
+  Optional filters include fiscal_year, award_type_codes, and agency_type (awarding vs funding perspective).
+  """
 
   use Hermes.Server.Component, type: :tool
 

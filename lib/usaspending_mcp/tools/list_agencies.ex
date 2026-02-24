@@ -1,5 +1,13 @@
 defmodule UsaspendingMcp.Tools.ListAgencies do
-  @moduledoc "List top-tier federal agencies with budget authority, obligated amounts, and outlays"
+  @moduledoc """
+  List all top-tier federal agencies with their budget authority, obligated amounts, and outlays for the current fiscal year.
+
+  Returns agency name, budget authority amount, obligated amount, outlay amount, percentage of total budget authority, and active fiscal year. No parameters are required — call with no arguments to get all agencies.
+
+  Use this tool to look up exact agency names and codes before using them as filters in other tools. Many other tools require the exact official agency name (e.g. "Department of Defense", "Department of Health and Human Services").
+
+  Optional sort and order parameters control the output ordering. Defaults to sorting by budget_authority_amount descending.
+  """
 
   use Hermes.Server.Component, type: :tool
 

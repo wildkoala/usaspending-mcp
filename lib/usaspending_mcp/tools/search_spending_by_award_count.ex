@@ -1,5 +1,11 @@
 defmodule UsaspendingMcp.Tools.SearchSpendingByAwardCount do
-  @moduledoc "Get counts of federal spending awards grouped by type (Contracts, Grants, Loans, Direct Payments, Other)"
+  @moduledoc """
+  Get counts of federal spending awards grouped by award type (Contracts, Grants, Loans, Direct Payments, Other Financial Assistance).
+
+  Returns a simple breakdown of how many awards exist in each category matching the given filters. This is useful for understanding the volume distribution before drilling into specific award types with search_spending_by_award.
+
+  All parameters are optional. Dates must be in YYYY-MM-DD format. The agency parameter must be the full official toptier agency name (e.g. "Department of Defense"). Use list_agencies first if you need to look up the exact agency name.
+  """
 
   use Hermes.Server.Component, type: :tool
 

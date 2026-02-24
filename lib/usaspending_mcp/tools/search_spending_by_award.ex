@@ -1,5 +1,15 @@
 defmodule UsaspendingMcp.Tools.SearchSpendingByAward do
-  @moduledoc "Search for federal spending awards with various filters including keywords, time periods, award types, and agencies"
+  @moduledoc """
+  Search for individual federal spending awards (contracts, grants, loans, direct payments) from USASpending.gov.
+
+  Returns a paginated list of awards with details including: award ID, recipient name, award amount, description, awarding agency/subagency, period of performance, NAICS/PSC codes, and internal IDs for drill-down.
+
+  Use this tool when the user wants to find specific awards matching criteria. For aggregate counts by award type, use search_spending_by_award_count instead. For spending totals grouped by category (agency, NAICS, etc.), use spending_by_category instead.
+
+  All filter parameters are optional. If no award_type is specified, defaults to contract types (A, B, C, D). Dates must be in YYYY-MM-DD format. The agency parameter must be the full official toptier agency name (e.g. "Department of Defense", not "DoD"). Use list_agencies first if you need to look up the exact agency name.
+
+  Results are sorted by award amount descending. Use the page and limit parameters to paginate through large result sets.
+  """
 
   use Hermes.Server.Component, type: :tool
 

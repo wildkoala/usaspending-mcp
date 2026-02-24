@@ -1,5 +1,13 @@
 defmodule UsaspendingMcp.Tools.GetRecipientProfile do
-  @moduledoc "Get profile information for a federal spending recipient including location, business type, and spending breakdown"
+  @moduledoc """
+  Get profile information for a specific federal spending recipient, including location, business types, and spending breakdown by award type.
+
+  The 'recipient_id' parameter is REQUIRED — this must be a valid recipient hash ID in UUID format. These IDs are returned by search_spending_by_award and get_award_details. You must search for awards first to obtain a valid recipient_id.
+
+  Returns recipient name, DUNS, UEI, parent organization, location, business type classifications, total transaction amount, total award count, and a breakdown of spending by award type (contracts, grants, loans, direct payments, other).
+
+  The optional 'year' parameter filters to a specific fiscal year. Use "all" for all years or "latest" (the default) for the most recent year.
+  """
 
   use Hermes.Server.Component, type: :tool
 

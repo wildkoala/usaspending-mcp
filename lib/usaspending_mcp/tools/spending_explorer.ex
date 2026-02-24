@@ -1,5 +1,13 @@
 defmodule UsaspendingMcp.Tools.SpendingExplorer do
-  @moduledoc "Explore aggregate federal spending breakdowns by budget function, agency, object class, or federal account for a given fiscal year"
+  @moduledoc """
+  Explore aggregate federal spending breakdowns by budget function, agency, object class, or federal account for a given fiscal year.
+
+  Returns the top spending entries for the chosen dimension, with dollar amounts. This gives a high-level view of where federal money goes within a fiscal year.
+
+  Both 'type' and 'fiscal_year' are REQUIRED parameters. The type must be one of: budget_function, agency, object_class, or federal_account. The fiscal_year must be an integer (e.g. 2024, 2025). The optional spending_type defaults to "total" but can be set to "discretionary" or "mandatory".
+
+  Use this tool when the user asks broad questions like "where does the government spend money?" or "which agencies spend the most?" For award-level detail, use search_spending_by_award instead.
+  """
 
   use Hermes.Server.Component, type: :tool
 

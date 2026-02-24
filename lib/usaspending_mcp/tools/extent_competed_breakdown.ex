@@ -1,5 +1,15 @@
 defmodule UsaspendingMcp.Tools.ExtentCompetedBreakdown do
-  @moduledoc "Calculate what percentage of spending goes to each extent-competed category (e.g. full and open competition, not competed, competed under SAP) for given filters. Returns a complete breakdown in a single call — no follow-up tool calls needed."
+  @moduledoc """
+  Calculate what percentage of total spending falls into each competition category for given filters. Returns a complete breakdown across all extent-competed types in a single call — no follow-up tool calls needed.
+
+  Competition categories analyzed: Full and Open Competition, Full and Open After Exclusion of Sources, Competed Under SAP, Competed Delivery Order, Follow-on to Competed Action, Non-competitive Delivery Order, Not Available for Competition, Not Competed, and Not Competed Under SAP. Each category's dollar amount and percentage of the base total is returned.
+
+  The 'category' parameter is REQUIRED and determines the grouping dimension for the base spending query. Valid values: awarding_agency, awarding_subagency, funding_agency, funding_subagency, naics, psc, recipient_duns, cfda, country, state_territory, county, district, federal_account.
+
+  This tool makes multiple API calls internally (one per competition category plus one baseline) so it may take longer than other tools. All filter parameters except category are optional. Dates must be in YYYY-MM-DD format. The agency parameter must be the full official toptier agency name.
+
+  Use this when the user asks questions like "how much of DoD spending is competitively awarded?" or "what percentage of IT contracts are sole-source?"
+  """
 
   use Hermes.Server.Component, type: :tool
 

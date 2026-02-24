@@ -1,5 +1,13 @@
 defmodule UsaspendingMcp.Tools.GetAwardDetails do
-  @moduledoc "Get detailed information about a specific federal spending award by its ID"
+  @moduledoc """
+  Get comprehensive details about a single federal spending award by its unique ID.
+
+  The 'award_id' parameter is REQUIRED — this must be either the generated_unique_award_id or the internal database ID number. These IDs are returned by search_spending_by_award in the "ID" field (generated_internal_id). You must search for awards first to obtain a valid award_id.
+
+  Returns full award details including: award type, description, total obligation, base and all options value, total outlays, recipient name and ID, funding agency, place of performance, period of performance dates, NAICS code, PSC code, and CFDA information.
+
+  Use the returned recipient ID (hash) with get_recipient_profile to get more information about the award recipient.
+  """
 
   use Hermes.Server.Component, type: :tool
 

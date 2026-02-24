@@ -1,5 +1,15 @@
 defmodule UsaspendingMcp.Tools.SetAsideBreakdown do
-  @moduledoc "Calculate what percentage of spending goes to each set-aside category (e.g. veteran-owned, women-owned, HUBZone) for given filters. Returns a complete breakdown in a single call — no follow-up tool calls needed."
+  @moduledoc """
+  Calculate what percentage of total spending goes to each small business set-aside category for given filters. Returns a complete breakdown across all set-aside types in a single call — no follow-up tool calls needed.
+
+  Set-aside categories analyzed: HBCUs/Minority Institutions, HUBZone, Native American, Small Disadvantaged Business, Veteran Owned, and Women Owned. Each category's dollar amount and percentage of the base total is returned.
+
+  The 'category' parameter is REQUIRED and determines the grouping dimension for the base spending query. Valid values: awarding_agency, awarding_subagency, funding_agency, funding_subagency, naics, psc, recipient_duns, cfda, country, state_territory, county, district, federal_account.
+
+  This tool makes multiple API calls internally (one per set-aside category plus one baseline) so it may take longer than other tools. All filter parameters except category are optional. Dates must be in YYYY-MM-DD format. The agency parameter must be the full official toptier agency name.
+
+  Use this when the user asks questions like "what percentage of DoD contracts go to veteran-owned businesses?" or "how does small business set-aside spending break down for NAICS 541511?"
+  """
 
   use Hermes.Server.Component, type: :tool
 

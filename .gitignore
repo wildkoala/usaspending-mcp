@@ -24,3 +24,6 @@ usaspending_mcp-*.tar
 
 # mdbook build output
 /docs/book/
+
+# File to load environment data
+.env
